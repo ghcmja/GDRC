@@ -65,6 +65,15 @@ public class Apl {
     private String prev_ystr;
     private String prev_dstr;
 
+    // macro objects
+    private final String CIRCLE = "1";
+    private final String VECTORLINE ="20";
+    private final String CENTERLINE = "21";
+    private final String OUTLINE = "4";
+    private final String POLYGON = "5";
+    private final String MOIRE = "6";
+    private final String THERMAL = "7";
+
     
     public Apl(String gerberFile) {
         prev_xstr = "";
@@ -624,6 +633,51 @@ public class Apl {
     }
 
     private void addMacro(String line) {
+        // ki kell mazsolazni a nevut
+        int mpos = line.indexOf("M");
+        int starpos = line.indexOf("*");
+        String macroname = line.substring(mpos + 1, starpos);
+        Macro me = new Macro();
+
+        me.setMacroName(macroname);
+        line = line.trim().toUpperCase();
+        this.linenumber++;
+        do{
+           me.addMacroLine(line); 
+           this.linenumber++;
+        }
+        while(line.contains("%"));
+        
+        
+      /*  if(me.startsWith("1"))
+        {
+           draw(); 
+        }
+        if(me.startsWith("20"))
+        {
+          draw();  
+        }
+        if(me.startsWith("21"))
+        {
+            draw();
+        }
+        if(me.startsWith("4"))
+        {
+            draw();
+        }
+         if(me.startsWith("5"))
+        {
+            
+        }
+          if(me.startsWith("6"))
+        {
+            
+        }
+           if(me.startsWith("7"))
+        {
+            
+        }
+        */
 
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
