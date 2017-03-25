@@ -29,7 +29,7 @@ import fileprocessing.Apl;
 public class gerberDRC {
     
     public static void main(String[] args) {
-        Apl apl = new Apl("EB247.GTL");
+        Apl apl = new Apl("eb.gtl");
         apl.createPNG("eb.png");
     }
 
