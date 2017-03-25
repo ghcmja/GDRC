@@ -23,17 +23,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The {@code ExtractNumberFromString} extract the
+ * digits from the given string
  *
- * @author GY
+ * @author  GY
  */
 public class ExtractNumberFromString {
 
     private List<String> extract = new ArrayList<>();
 
     /**
-     *
+     * 
      * @param extract
-     * @param isXYD
      */
     
     // if extract is a line, List will fill with its items

@@ -21,22 +21,19 @@ package fileprocessing;
 
 import gerberobjects.MyGraphics;
 import gerberobjects.Aperture;
+import gerberobjects.Macro;
 import java.io.*;
 import java.util.*;
 import java.awt.geom.Point2D;
 
 public class Apl {
 
-    // GLOBAL OUTPUT SETTINGS
-    private String dir = "/home/daveg/Electronics/relay-clock/plots/";
-    private String project = "relay-clock";
-
     private boolean process_F_Cu = false;
     private boolean process_B_Cu = true;
     private boolean process_NPTH = false;
 
-    private int ppi = 1000; 		// pixels per inch
-    private double border_mm = 1; 	// mm border around entire image
+    private int ppi;    		// pixels per inch
+    private double border_mm;           // mm border around entire image
 
     // gerber file parameters
     private int nInts;
@@ -60,11 +57,37 @@ public class Apl {
     private HashMap<Integer, Aperture> tools = new HashMap<Integer, Aperture>();
     private Aperture tool = null;
     private Point2D.Double lastPoint = new Point2D.Double(0, 0);
-
+    // list of macros included in gerber file
+    private List<Macro> macros = new ArrayList<>();
+    
+    // previously stored values for processing incomplete (missing X, Y or D) lines
     private String prev_xstr;
     private String prev_ystr;
     private String prev_dstr;
 
+    
+    public Apl(String gerberFile) {
+        prev_xstr = "";
+        prev_ystr = "";
+        prev_dstr = "";
+
+        // process the largest image first, usually the outline.
+        //then use the same image dimensions to make the traces image
+        this.ppi = 1000;        // 1000 pixel per inch
+        border_mm = 1;
+
+        
+        processGerberFile(gerberFile);
+
+//		if (process_NPTH) processDrillFile(prefix+"-NPTH.drl");
+//		processDrillFile(prefix+".drl");
+//		if (process_B_Cu) processGerberFile(prefix+"-B_Cu.gbl");
+//		if (process_F_Cu) processGerberFile(prefix+"-F_Cu.gtl");
+//		if (process_NPTH) processDrillFile(prefix+"-NPTH.drl");
+//		processDrillFile(prefix+".drl");
+//		myg.drawAndWritePNG(prefix+"-mill-traces.png", this.ppi, border, false);
+    }
+    
     public void addAperture(String line) {
         // strip the %AD
         String s = line.substring(3);
@@ -531,24 +554,6 @@ public class Apl {
     // 
     public void createPNG(String outputFile) {
         myg.drawAndWritePNG(outputFile, this.ppi, border, true);
-    }
-
-    public Apl(String gerberFile) {
-        prev_xstr = "";
-        prev_ystr = "";
-        prev_dstr = "";
-
-        // process the largest image first, usually the outline.
-        //then use the same image dimensions to make the traces image
-        processGerberFile(gerberFile);
-
-//		if (process_NPTH) processDrillFile(prefix+"-NPTH.drl");
-//		processDrillFile(prefix+".drl");
-//		if (process_B_Cu) processGerberFile(prefix+"-B_Cu.gbl");
-//		if (process_F_Cu) processGerberFile(prefix+"-F_Cu.gtl");
-//		if (process_NPTH) processDrillFile(prefix+"-NPTH.drl");
-//		processDrillFile(prefix+".drl");
-//		myg.drawAndWritePNG(prefix+"-mill-traces.png", this.ppi, border, false);
     }
 
     private boolean processFormat(String line) {
