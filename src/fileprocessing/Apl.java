@@ -54,12 +54,15 @@ public class Apl {
     private int linenumber = 0;
     private HashMap<Integer, Aperture> apertures = new HashMap<Integer, Aperture>();
     private Aperture aperture = null;
+    private int selectedApertureId = 0;
+    private int savedApertureId = 0;
+    
     private HashMap<Integer, Aperture> tools = new HashMap<Integer, Aperture>();
     private Aperture tool = null;
     private Point2D.Double lastPoint = new Point2D.Double(0, 0);
     // list of macros included in gerber file
     private List<Macro> macros = new ArrayList<>();
-    
+
     // previously stored values for processing incomplete (missing X, Y or D) lines
     private String prev_xstr;
     private String prev_ystr;
@@ -67,25 +70,29 @@ public class Apl {
 
     // macro objects
     private final String CIRCLE = "1";
-    private final String VECTORLINE ="20";
+    private final String VECTORLINE = "20";
     private final String CENTERLINE = "21";
     private final String OUTLINE = "4";
     private final String POLYGON = "5";
     private final String MOIRE = "6";
     private final String THERMAL = "7";
 
-    
     public Apl(String gerberFile) {
         prev_xstr = "";
         prev_ystr = "";
         prev_dstr = "";
 
+        float[] modarray = new float[2];
+        modarray[0] = (float)0.001;
+        //modarray[1] = (float)0.001;
+        this.ppi = 3000;        // 1000 pixel per inch
+        
+        this.apertures.put(0, new Aperture(ppi, "C", modarray));
         // process the largest image first, usually the outline.
         //then use the same image dimensions to make the traces image
-        this.ppi = 1000;        // 1000 pixel per inch
+
         border_mm = 1;
 
-        
         processGerberFile(gerberFile);
 
 //		if (process_NPTH) processDrillFile(prefix+"-NPTH.drl");
@@ -96,7 +103,7 @@ public class Apl {
 //		processDrillFile(prefix+".drl");
 //		myg.drawAndWritePNG(prefix+"-mill-traces.png", this.ppi, border, false);
     }
-    
+
     public void addAperture(String line) {
         // strip the %AD
         String s = line.substring(3);
@@ -180,6 +187,7 @@ public class Apl {
         int n = Integer.parseInt(s.substring(1, 3));
         System.out.println("selecting aperture number: " + n);
         this.aperture = this.apertures.get(n);
+        selectedApertureId = n;
     }
 
     public void selectTool(String line) {
@@ -395,6 +403,8 @@ public class Apl {
         this.lastPoint.y = y;
     }
 
+    boolean isRegion = false;
+
     public boolean processGerber(String line) {
         this.linenumber++;
 
@@ -459,7 +469,25 @@ public class Apl {
             drawArc(line);
         }
         if (line.startsWith("G03")) {
+
             drawArc(line);
+        }
+
+        if (line.startsWith("G36")) {
+            savedApertureId = selectedApertureId;
+            selectAperture("G54D00");
+            isRegion = true;
+        }
+
+        if (line.startsWith("G37")) {
+            // floodfill
+            
+            this.myg.circle(100, 100, 100);
+           
+            
+            String s = "G54D" + String.format("%02d", savedApertureId);
+            selectAperture(s);
+            isRegion = false;
         }
 
         if (line.startsWith("X") || line.startsWith("Y") || line.startsWith("D")) {
@@ -467,7 +495,7 @@ public class Apl {
         }
         return false;
     }
-
+    
     public boolean processDrill(String line) {
 
         this.linenumber++;
@@ -642,43 +670,10 @@ public class Apl {
         me.setMacroName(macroname);
         line = line.trim().toUpperCase();
         this.linenumber++;
-        do{
-           me.addMacroLine(line); 
-           this.linenumber++;
-        }
-        while(line.contains("%"));
-        
-        
-      /*  if(me.startsWith("1"))
-        {
-           draw(); 
-        }
-        if(me.startsWith("20"))
-        {
-          draw();  
-        }
-        if(me.startsWith("21"))
-        {
-            draw();
-        }
-        if(me.startsWith("4"))
-        {
-            draw();
-        }
-         if(me.startsWith("5"))
-        {
-            
-        }
-          if(me.startsWith("6"))
-        {
-            
-        }
-           if(me.startsWith("7"))
-        {
-            
-        }
-        */
+        do {
+            me.addMacroLine(line);
+            this.linenumber++;
+        } while (line.contains("%"));
 
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

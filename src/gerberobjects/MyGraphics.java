@@ -244,6 +244,8 @@ public class MyGraphics {
 
 		}
 
+                
+                
 		System.out.println("There were "+operations.size()+" operations in memory");
 		operations.clear();
 
